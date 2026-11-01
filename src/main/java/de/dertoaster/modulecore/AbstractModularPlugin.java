@@ -48,12 +48,18 @@ public abstract class AbstractModularPlugin<T extends AbstractModule> extends Ja
         super.onLoad();
         final AbstractModularPlugin<T> modularPlugin = this;
         this.modules().forEach(module -> module.onInit(modularPlugin));
+
         saveDefaultConfig();
         getConfig();
+
+        applyLogLevel(this.defaultLogLevel);
+
         if (this.getConfig() != null) {
             for (Map.Entry<String, T> entry : this.modules.entrySet()) {
+                T module = entry.getValue();
                 ConfigurationSection moduleSection = this.getSection("Modules/" + entry.getKey());
-                entry.getValue().assignConfig(moduleSection);
+                module.assignConfig(moduleSection);
+                applyLogLevel(moduleSection, module.getLogger(), module.getDefaultLogLevel());
             }
         }
         this.modules().forEach(module -> module.onLoad(modularPlugin));
@@ -62,8 +68,6 @@ public abstract class AbstractModularPlugin<T extends AbstractModule> extends Ja
     @Override
     public void onEnable() {
         super.onEnable();
-
-        applyLogLevel(this.defaultLogLevel);
 
         Set<T> toRemove = new HashSet<>();
         for (Map.Entry<String, T> entry : this.modules.entrySet()) {
@@ -89,18 +93,22 @@ public abstract class AbstractModularPlugin<T extends AbstractModule> extends Ja
         return getConfig();
     }
 
-    private void applyLogLevel(Level defaultLevel) {
-        Level logLevel = defaultLevel;
-        if (getConfig().contains("LogLevel")) {
-            String configLL = getConfig().getString("LogLevel", defaultLevel.getName());
+    private void applyLogLevel(Level defaultLogLevel) {
+        applyLogLevel(getMainSection(), this.getLogger(), defaultLogLevel);
+    }
+
+    private void applyLogLevel(final ConfigurationSection config, final Logger logger, final Level defaultLogLevel) {
+        Level logLevel = defaultLogLevel;
+        if (config.contains("LogLevel")) {
+            String configLL = config.getString("LogLevel", defaultLogLevel.getName());
             try {
                 logLevel = Level.parse(configLL);
             } catch(Exception ex) {
-                this.getLogger().warning("Invalid loglevel <" + configLL + "> entered!");
-                logLevel = defaultLevel;
+                logger.warning("Invalid loglevel <" + configLL + "> entered!");
+                logLevel = defaultLogLevel;
             }
         }
-        this.getLogger().setLevel(logLevel);
+        logger.setLevel(logLevel);
     }
 
     protected abstract Class<T> getModuleBaseClass();

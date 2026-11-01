@@ -1,6 +1,8 @@
 package de.dertoaster.modulecore;
 
 import org.bukkit.configuration.ConfigurationSection;
+
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public abstract class AbstractModule implements IConfigurationHelper {
@@ -41,6 +43,10 @@ public abstract class AbstractModule implements IConfigurationHelper {
         } else {
             throw new IllegalStateException("Logger was already assigned!");
         }
+    }
+
+    public Level getDefaultLogLevel() {
+        return Level.INFO;
     }
 
     @Override
