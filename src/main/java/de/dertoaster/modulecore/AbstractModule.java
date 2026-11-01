@@ -5,6 +5,22 @@ import org.bukkit.configuration.ConfigurationSection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Call order:
+ *   ## MODULAR PLUGIN: onLoad() ##
+ *   1) constructor / initializers
+ *   2) Module#assignLogger()
+ *   3) Module#shouldLoad() => Should the module be loaded at all? Everything that returns FALSE here, will not be loaded at all
+ *   4) Module#onInit()
+ *   5) Module#assignConfig()
+ *   6) Module#applyLogLevel() => Reads logLevel from Module config section and defaults to getDefaultLogLevel()
+ *   7) Module#onLoad()
+ *   ## MODULAR PLUGIN: onEnable() ##
+ *   8) Module#shouldEnable() => If FALSE is returned, the module will be removed from the list and won't be processed further!
+ *   9) Module#onEnable()
+ *   ## MODULAR PLUGIN: onDisable() ##
+ *   10) Module#onDisable()
+ */
 public abstract class AbstractModule implements IConfigurationHelper {
 
     private final String moduleName;
