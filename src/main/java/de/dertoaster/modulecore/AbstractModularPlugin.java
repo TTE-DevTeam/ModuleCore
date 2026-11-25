@@ -69,13 +69,15 @@ public abstract class AbstractModularPlugin<T extends AbstractModule> extends Ja
     public void onEnable() {
         super.onEnable();
 
-        Set<T> toRemove = new HashSet<>();
+        Set<Map.Entry<String, T>> toRemove = new HashSet<>();
         for (Map.Entry<String, T> entry : this.modules.entrySet()) {
             if (!entry.getValue().shouldEnable()) {
-                toRemove.add(entry.getValue());
+                toRemove.add(entry);
             }
         }
-        toRemove.forEach(this.modules::remove);
+        toRemove.forEach(entry -> {
+            modules.remove(entry.getKey(), entry.getValue());
+        });
 
         final AbstractModularPlugin<T> modularPlugin = this;
         this.modules().forEach(module -> module.onEnable(modularPlugin));
